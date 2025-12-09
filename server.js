@@ -1,7 +1,9 @@
+// backend/server.js
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const fs = require("fs");
 const connectDB = require("./config/db");
 
 const projectsRoute = require("./routes/projects");
@@ -13,8 +15,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve Uploaded Images
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// ensure uploads folder exists
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+// Serve Uploaded Images (public)
+app.use("/uploads", express.static(uploadsDir));
 
 // Connect DB
 connectDB();

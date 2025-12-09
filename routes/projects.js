@@ -1,31 +1,38 @@
+// backend/routes/projects.js
 const express = require("express");
 const router = express.Router();
-// const upload = require("../middlewares/multer");
 const Project = require("../models/Project");
 const upload = require("../middlewares/multer");
 
-// Add project with image upload
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+
+// GET all projects
+router.get("/", async (req, res) => {
+  try {
+    const projects = await Project.find().sort("-createdAt");
+    res.json(projects);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST create project with image
 router.post("/", upload.single("image"), async (req, res) => {
   try {
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : "";
+    const { name, description } = req.body;
+    const imageUrl = req.file ? `${BASE_URL}/uploads/${req.file.filename}` : "";
 
     const newProject = await Project.create({
-      name: req.body.name,
-      description: req.body.description,
+      name,
+      description,
       imageUrl,
     });
 
     res.status(201).json(newProject);
-  } catch (error) {
-    console.error("Upload error:", error);
-    res.status(500).json({ message: "Upload failed" });
+  } catch (err) {
+    console.error("Project POST error:", err);
+    res.status(500).json({ message: err.message });
   }
-});
-
-// Get all projects
-router.get("/", async (req, res) => {
-  const projects = await Project.find();
-  res.json(projects);
 });
 
 module.exports = router;
