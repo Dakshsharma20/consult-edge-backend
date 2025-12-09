@@ -1,34 +1,31 @@
 const express = require("express");
 const router = express.Router();
+// const upload = require("../middlewares/multer");
 const Project = require("../models/Project");
-const upload = require("../middlewares/upload");
+const upload = require("../middlewares/multer");
 
-// GET all projects
-router.get("/", async (req, res) => {
+// Add project with image upload
+router.post("/", upload.single("image"), async (req, res) => {
   try {
-    const projects = await Project.find().sort("-createdAt");
-    res.json(projects);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : "";
+
+    const newProject = await Project.create({
+      name: req.body.name,
+      description: req.body.description,
+      imageUrl,
+    });
+
+    res.status(201).json(newProject);
+  } catch (error) {
+    console.error("Upload error:", error);
+    res.status(500).json({ message: "Upload failed" });
   }
 });
 
-// POST create project
-router.post("/", upload.single("image"), async (req, res) => {
-  try {
-    const { name, description } = req.body;
-
-    const newProject = new Project({
-      name,
-      description,
-      imageUrl: req.file ? `/uploads/${req.file.filename}` : "",
-    });
-
-    await newProject.save();
-    res.status(201).json(newProject);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+// Get all projects
+router.get("/", async (req, res) => {
+  const projects = await Project.find();
+  res.json(projects);
 });
 
 module.exports = router;
