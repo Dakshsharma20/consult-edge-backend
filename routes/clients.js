@@ -24,12 +24,17 @@ router.post("/", upload.single("image"), async (req, res) => {
 
     const imageUrl = req.file ? `${BASE_URL}/uploads/${req.file.filename}` : "";
 
-    const newClient = new Client({
-      name,
-      designation,
-      description,
-      imageUrl,
-    });
+    // build absolute image URL using BASE_URL env var
+const base = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+const imgUrl = req.file ? `${base}/uploads/${req.file.filename}` : "";
+
+const newClient = new Client({
+  name,
+  designation,
+  description,
+  imageUrl: imgUrl,
+});
+
 
     await newClient.save();
     res.status(201).json(newClient);
